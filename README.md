@@ -173,6 +173,12 @@ O **léxico explica o significado** de cada medida; os **números vêm da base f
 distintas (o léxico nunca é apresentado como fonte dos valores). Datas usam **timestamps fictícios
 explícitos**, não expressões relativas sem correspondência. Nomes técnicos aparecem só em detalhes.
 
+## Notas de rastreabilidade PR-01 … PR-10
+
+O documento **`app-demo/NOTAS-PR.md`** liga cada requisito PR-01 … PR-10 da apresentação aos
+componentes e fluxos implementados na aplicação demonstrativa, indicando o que é local, simulado ou
+capacidade futura.
+
 ## Decisões que NÃO foram tomadas (deliberadamente)
 
 - **Motor de consulta**: não há decisão de adotar um novo. O papel do Superset como executor está em
