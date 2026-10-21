@@ -92,7 +92,7 @@ function buildShell() {
       <h1>Observatório — Proposta visual técnica</h1>
       <span class="tag">Demonstração · dados fictícios</span>
       <div class="warn-strip">Não é a interface de produção. Nenhuma conexão com serviços reais.</div>
-      <a href="app-demo/index.html" class="btn small" style="margin-top:10px;width:100%;justify-content:center;background:#15603f;border-color:#15603f;color:#fff">▶ Abrir demo da interface (IFRJ)</a>
+      <a href="app-demo/index.html" class="btn small" style="margin-top:10px;width:100%;justify-content:center;background:#15603f;border-color:#15603f;color:#fff">▶ Abrir aplicação demonstrativa</a>
     </div>
     <nav class="nav">
       <div class="ctx-switch">

@@ -71,23 +71,107 @@ Rotas, payloads, entidades e tipos são **propostas** ou **ilustrativas** — nu
 contratos reais. O Superset aparece em duas hipóteses distintas (incorporação proposta; execução de
 consultas em avaliação) e **nunca** como motor de consulta já escolhido.
 
-## Itens SIMULADOS (sem efeito real)
+## Itens SIMULADOS da apresentação (sem efeito real)
 
-- **Troca de contexto fictício** (A: Mobilidade urbana / B: Atenção à saúde) demonstra generalização
-  (PR-10) com a mesma estrutura.
-- **Filtros ativos**: remover chip / limpar afeta só o estado visual da demo.
-- **Conversa com IA**: diálogo roteirizado; os botões Ajustar / Salvar / Adicionar apenas exibem
-  mensagens de simulação. Sem confiança percentual inventada.
-- **Compositor**: adicionar, remover e reordenar blocos; prévia; alternância desktop/mobile.
-  "Salvar rascunho" e "Publicar" **não** persistem em backend — só mudam o rótulo de status.
-- **Dashboard incorporado**: placeholder explícito, sem `iframe` e sem chamadas externas.
-- **Checklist técnico** e **matriz de autorização**: preenchíveis; valores são marcados como locais e
-  não auditados.
+- **Troca de contexto fictício** demonstra generalização (PR-10) com a mesma estrutura.
+- **Checklist técnico** e **matriz de autorização**: preenchíveis; valores marcados como locais e não
+  auditados.
+- O estado da apresentação é salvo em `localStorage` (chave `observatorio_proposta_demo_v1`), com
+  **"Restaurar demonstração"** na barra lateral.
 
-### Armazenamento local
-O compositor e o checklist são salvos no `localStorage` do navegador (chave
-`observatorio_proposta_demo_v1`). Isso é armazenamento **local**, não um backend. O botão
-**"Restaurar demonstração"** (barra lateral) limpa esse estado.
+---
+
+# Aplicação demonstrativa — `/app-demo/`
+
+Além da apresentação, o repositório inclui em **`app-demo/`** uma **aplicação demonstrativa** que
+exercita a experiência do usuário de ponta a ponta, com **dados fictícios e persistência local**.
+Mesma stack vanilla (HTML/CSS/JS, ES modules, sem build, sem dependências, sem CDN).
+
+> **Demonstração com dados fictícios e armazenamento local. Sem integração com serviços reais.**
+> Sem backend, sem APIs reais, sem credenciais, sem chamadas externas.
+
+Abrir em: <http://localhost:8137/app-demo/> (com o servidor estático rodando na raiz).
+
+## Jornada demonstrada
+
+Selecionar contexto → criar análise → ajustar → salvar → abrir no catálogo → adicionar à
+publicação → contextualizar (conversa) → pré-visualizar → publicar localmente → consumir
+(rota `#publicacao/{id}`).
+
+## Dois contextos genéricos (mesma estrutura, por configuração)
+
+- **A. Panorama acadêmico** (origem IFRJ: campi, modalidades, matrículas, evasão, conclusão, cotas).
+- **B. Cobertura de entrevistas de um programa territorial** (territórios, status de entrevista,
+  metas e taxa de cobertura).
+
+O produto chama-se apenas **"Observatório"** (neutro). O IFRJ é um dos contextos, não a marca do
+app. Trocar o contexto atualiza identificação, conjuntos de dados, medidas, dimensões, filtros,
+sugestões da IA, catálogo e definições — tudo pelos **mesmos componentes e renderizadores**.
+
+## Modelo de estado local
+
+Entidades relacionais com IDs estáveis, persistidas em `localStorage` sob a chave versionada
+**`observatorio_demo_v2`** (migração segura: estado antigo/incompatível é descartado com segurança,
+nunca causa tela em branco). Entidades: `contexts`, `datasets`, `analyses`, `publications`,
+`conversations`, `uiState`. Publicar gera um `publishedSnapshot` versionado (cópia das análises
+necessárias), de modo que editar o rascunho depois **não** altera a versão publicada até uma
+republicação explícita. **"Restaurar demonstração"** volta a um estado-semente coerente.
+
+## O que é implementado localmente × simulado × futuro
+
+- **Implementado localmente:** consulta determinística com filtros que realmente alteram os
+  resultados; editor de análise (manual) com validação; catálogo navegável com busca; conversa
+  contextual sobre uma análise e seu recorte; compositor editável (título, texto, indicador,
+  gráfico, **tabela real**, metodologia); publicação com snapshot e rota de consumo; permissões
+  simuladas (consumidor / autor sem publicação / autor com publicação).
+- **Integração simulada:** o assistente de IA é **roteirizado** (sem modelo real) e explicitamente
+  identificado; o recurso **Superset** aparece como placeholder (sem `iframe`, sem token) com o aviso
+  "Conteúdo incorporado simulado. Integração, autenticação e recursos disponíveis dependem de
+  validação técnica."
+- **Capacidade futura / em avaliação:** execução analítica real, backend de persistência e
+  autorização, integração efetiva com LAL/ETL/Superset/IA.
+
+> As **permissões** são apenas de demonstração: "Permissões simuladas no navegador. A implementação
+> real exigirá validação no backend." Login, modo de uso, visibilidade e permissão de publicar não
+> são sinônimos. A visão de consumo (`#publicacao/{id}`) depende do armazenamento **local** e **não**
+> compartilha conteúdo com outros usuários ou dispositivos.
+
+## Estrutura de `app-demo/`
+
+```
+app-demo/
+  index.html
+  assets/
+    css/app.css
+    js/
+      data.js          Configuração dos dois contextos + datasets fictícios + relógio fictício
+      query.js         runQuery único e determinístico (regras explícitas: total/contagem/taxa/distribuição)
+      analysis.js      Modelo de análise + validador (compartilhado por editor manual e IA)
+      permissions.js   Perfis fictícios + can(ação, estado) + mapa ação→permissão
+      store.js         Estado relacional versionado (observatorio_demo_v2) + persistência + snapshot
+      charts.js        Renderizadores SVG + tabela real
+      render.js        renderAnalysis(): porta única de renderização + metadados + estados
+      views.js         Telas (dashboard, catálogo, editor, assistente, compositor, consumo)
+      app.js           Shell, roteamento por hash (inclui #publicacao/{id}), foco e acessibilidade
+  tests/
+    selftest.js        Autoteste de lógica pura (node)
+    browser-validate.mjs  Harness de validação E2E headless (não importado pela app)
+```
+
+## Verificação executada (navegador real)
+
+- `node --check` nos 9 módulos: OK.
+- `node app-demo/tests/selftest.js`: **SELFTEST OK**.
+- Validação E2E em **Google Chrome headless** (DevTools Protocol): critérios AC-01…AC-20 exercitados
+  por manipulação de DOM/estado — **zero exceções de console** e **zero requisições externas** (só os
+  10 recursos locais da app). O único 404 observado é o `/favicon.ico` automático do navegador, não
+  referenciado pela aplicação.
+
+## Metadados e linguagem
+
+O **léxico explica o significado** de cada medida; os **números vêm da base fictícia** — são fontes
+distintas (o léxico nunca é apresentado como fonte dos valores). Datas usam **timestamps fictícios
+explícitos**, não expressões relativas sem correspondência. Nomes técnicos aparecem só em detalhes.
 
 ## Decisões que NÃO foram tomadas (deliberadamente)
 
