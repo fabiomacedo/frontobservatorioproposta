@@ -444,6 +444,28 @@ function moveBlock(pubId, blockId, dir) {
   return { ok: true };
 }
 
+/* setBlockProps(pubId, blockId, props) — atualiza propriedades de um bloco do
+   rascunho (content/analysisId/legenda). Mutação de composição (design (i),
+   ACTION_PERMISSION.setBlockProps === 'compose'). Não cria/move/remove blocos;
+   só sobrescreve os campos fornecidos em props sobre o bloco existente. */
+function setBlockProps(pubId, blockId, props = {}) {
+  if (!can('compose', state)) return { ok: false, denied: true };
+  const pub = pubDraftBlocks(pubId);
+  if (!pub) return { ok: false, errors: [{ field: 'pubId', msg: 'Publicação inexistente.' }] };
+
+  const b = pub.draft.blocks.find((x) => x.id === blockId);
+  if (!b) return { ok: false, errors: [{ field: 'blockId', msg: 'Bloco inexistente.' }] };
+
+  // analysisId null/'' => remove a referência; demais campos sobrescrevem.
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'analysisId' && (v == null || v === '')) delete b.analysisId;
+    else b[k] = v;
+  }
+  save();
+  emit();
+  return { ok: true };
+}
+
 /* applyTemplate(pubId, blocks) — substitui os blocos do rascunho por um
    conjunto de modelo. O diálogo de confirmação é responsabilidade da view. */
 function applyTemplate(pubId, blocks) {
@@ -550,6 +572,7 @@ export const store = {
   addBlock,
   removeBlock,
   moveBlock,
+  setBlockProps,
   applyTemplate,
   publish,
 };
