@@ -1,7 +1,7 @@
 /* Página 6 — Composição e consumo [DOC-04, DOC-06] */
 import { store } from '../assets/js/state.js';
 import {
-  esc, anchor, metricWidget, chartWidget, embedPlaceholder, lexiconDisclosure,
+  esc, anchor, metricWidget, chartWidget, embedPlaceholder, lexiconDisclosure, contextGroup,
 } from '../assets/js/components.js';
 
 const MODELS = ['Análise rápida', 'Monitoramento', 'História temática'];
@@ -29,7 +29,10 @@ export function render() {
 
   <div class="callout">
     <strong>Critério (PR-01):</strong> no modo prévia/publicado, cada indicador e gráfico oferece acesso
-    à sua definição no LAL, no próprio ponto de consumo, para reduzir incompreensão do dado.
+    à sua definição no LAL, no próprio ponto de consumo, para reduzir incompreensão do dado. Quando a
+    visualização tem mais de um símbolo, o leitor alcança o <strong>símbolo principal</strong> (a
+    medida) em destaque e, logo abaixo, os <strong>símbolos de contexto</strong> (dimensões efetivas;
+    relacionados por similaridade vetorial são proposta).
   </div>
 
   <section class="block">
@@ -94,15 +97,25 @@ function renderBlocks(ctx, c) {
 }
 
 function blockBody(ctx, b) {
+  // Conjunto de símbolos de CONTEXTO da visualização (dimensões efetivas +
+  // relacionados propostos), montado uma vez por bloco. `relatedSymbols` é
+  // opcional e normalizado para []. Acompanha o conteúdo em edição e em
+  // prévia/publicado (o `c.preview` só esconde paleta e controles, não altera o
+  // corpo), e o acesso é operável por teclado via <details> nativo.
+  const context = { dimensoes: ctx.dimensionDefs, relacionados: ctx.relatedSymbols || [] };
   switch (b.type) {
     case 'text': return `<p>${esc(b.content || 'Texto editorial (fictício).')}</p>`;
-    case 'metric': return metricWidget(ctx.metric, { definition: ctx.definition, idSeed: 'comp-' + b.id });
-    case 'visualization': return chartWidget(ctx.chart, { definition: ctx.definition, idSeed: 'comp-' + b.id });
+    case 'metric': return metricWidget(ctx.metric, { definition: ctx.definition, context, idSeed: 'comp-' + b.id });
+    case 'visualization': return chartWidget(ctx.chart, { definition: ctx.definition, context, idSeed: 'comp-' + b.id });
     case 'embedded_dashboard': return embedPlaceholder('Bloco incorporado (placeholder).');
-    // Oferece o acesso completo à definição mesmo no modo prévia/publicado
-    // (o preset "História temática" injeta este bloco). O <details> é nativo,
-    // então funciona sem wiring. Aberto porque o bloco é explicitamente metodologia.
-    case 'methodology': return `<p class="small muted">Metodologia: contagem sintética por semana (demo).</p>${lexiconDisclosure(ctx.definition, { idSeed: 'comp-' + b.id, open: true })}`;
+    // Oferece o acesso completo ao símbolo PRINCIPAL (ficha metodológica aberta)
+    // e ao GRUPO de contexto (dimensões + relacionados propostos) mesmo no modo
+    // prévia/publicado (o preset "História temática" injeta este bloco). O
+    // grupo usa `contextGroup` — MESMA subordinação `.lex-context` dos widgets.
+    // Os <details> são nativos, então funcionam sem wiring.
+    case 'methodology': return `<p class="small muted">Metodologia: contagem sintética por semana (demo).</p>`
+      + lexiconDisclosure(ctx.definition, { idSeed: 'comp-' + b.id, open: true })
+      + contextGroup(ctx.dimensionDefs, ctx.relatedSymbols || [], { idSeed: 'comp-' + b.id });
     default: return `<p class="muted small">${esc(b.type)}</p>`;
   }
 }

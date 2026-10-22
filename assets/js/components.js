@@ -69,15 +69,31 @@ export function lexiconDisclosure(def, { kind = 'symbol', open = false, idSeed =
   </details>`;
 }
 
-// Disclosure agrupado das definições de dimensões/filtros (Figura 21 da
-// dissertação). Reaproveita a mesma terminologia; marcação fictícia por
-// dimensão e no summary. Helper irmão de lexiconDisclosure; NÃO altera
-// filtersWidget (que segue só renderizando chips).
-export function dimensionDefsDisclosure(dimensionDefs, { idSeed = '' } = {}) {
+// Disclosure agrupado dos símbolos de CONTEXTO da visualização (Figura 21 da
+// dissertação): dimensões/filtros e, opcionalmente, relacionados por
+// similaridade vetorial (estes últimos PROPOSTOS). Reaproveita a mesma
+// terminologia (Noção/Impacto/Sinônimos/Relações) na seção de dimensões;
+// marcação fictícia por dimensão. Helper irmão de lexiconDisclosure; NÃO
+// altera filtersWidget (que segue só renderizando chips).
+//
+// Parâmetros opcionais e RETROCOMPATÍVEIS:
+//   related = null : array de { term, note } dos relacionados vetoriais, OU null.
+//   open    = false: abre o <details> (espelha lexiconDisclosure).
+// Guard de vazio: sem dimensões E sem relacionados, retorna '' — protege
+// 05-ia e qualquer chamador sem contexto de emitir um bloco vazio.
+export function dimensionDefsDisclosure(dimensionDefs, { idSeed = '', related = null, open = false } = {}) {
   const seed = String(idSeed).replace(/[^a-zA-Z0-9_-]/g, '-');
   const domId = 'lex-' + seed;
-  const sections = Object.keys(dimensionDefs).map((k) => {
-    const d = dimensionDefs[k];
+  const dims = dimensionDefs || {};
+  const dimKeys = Object.keys(dims);
+  const rel = Array.isArray(related) ? related.filter((r) => r && r.term) : [];
+
+  // Nada a mostrar → string vazia.
+  if (dimKeys.length === 0 && rel.length === 0) return '';
+
+  // Seção de DIMENSÕES: terminologia P4 inalterada.
+  const dimSections = dimKeys.map((k) => {
+    const d = dims[k];
     return `
       <h5>${esc(d.term)}</h5>
       <p class="small muted">Definição fictícia, ilustrativa.</p>
@@ -88,11 +104,47 @@ export function dimensionDefsDisclosure(dimensionDefs, { idSeed = '' } = {}) {
         <dt>Relações</dt><dd>${d.relations.map(esc).join('; ')}</dd>
       </dl>`;
   }).join('');
+
+  // Seção de RELACIONADOS (só quando há itens): chip proposed + parágrafo FIXO
+  // de origem (.related-origin) + lista curta. NUNCA ficha dl-tech: um
+  // relacionado por similaridade é vizinho SUGERIDO, não símbolo já esclarecido.
+  const relSection = rel.length === 0 ? '' : `
+    <div class="related-block">
+      <div class="row">${stateChip('proposed', 'relacionados por similaridade vetorial')}</div>
+      <p class="small muted related-origin">Proposta de arquitetura: o LAL fica em banco vetorial,
+        associado a tabelas e colunas do datalake — por isso a medida é o símbolo principal e as
+        dimensões/relacionados são contexto. O protótipo não executa busca vetorial; os vínculos
+        abaixo são ilustrativos.</p>
+      <ul class="related-list">
+        ${rel.map((r) => `<li>${esc(r.term)}${r.note ? ` <span class="related-note">— ${esc(r.note)}</span>` : ''}</li>`).join('')}
+      </ul>
+    </div>`;
+
   return `
-  <details class="collapsible lex-def" id="${esc(domId)}">
-    <summary>Ver definições das dimensões no LAL (fictícias)</summary>
-    <div class="cbody">${sections}</div>
+  <details class="collapsible lex-def"${open ? ' open' : ''} id="${esc(domId)}">
+    <summary>Ver símbolos de contexto no LAL (dimensões e relacionados)</summary>
+    <div class="cbody">${dimSections}${relSection}</div>
   </details>`;
+}
+
+// Grupo de símbolos de CONTEXTO subordinado ao disclosure principal. É o ÚNICO
+// ponto que monta o contêiner `.lex-context` (recuo, borda-guia, rótulo textual
+// + summary menor), usado por metricWidget, chartWidget e pelo case
+// 'methodology' da P6 — garantindo subordinação idêntica nos três chamadores.
+// Emite o rótulo "Contexto do símbolo" como TEXTO real (perceptível por
+// tecnologia assistiva e presente mesmo sem CSS, não via ::before).
+// Retorna '' quando não há dimensões nem relacionados (propaga o guard).
+export function contextGroup(dimensoes, relacionados, { idSeed = '' } = {}) {
+  const inner = dimensionDefsDisclosure(dimensoes || {}, {
+    idSeed: idSeed + '-ctx',
+    related: Array.isArray(relacionados) ? relacionados : null,
+  });
+  if (!inner) return '';
+  return `
+  <div class="lex-context">
+    <p class="lex-context-label small muted">Contexto do símbolo</p>
+    ${inner}
+  </div>`;
 }
 
 // Legenda dos três estados.
@@ -167,19 +219,24 @@ export function sparkChart(series, { unit = '', descId = 'chart-desc' } = {}) {
   <p class="small muted" style="margin:6px 0 0">${desc}</p>`;
 }
 
-// O 2º parâmetro é OPCIONAL e retrocompatível: quando `definition` é fornecida,
-// o widget anexa o acesso à definição do símbolo (lexiconDisclosure) logo
-// adjacente ao dado; quando omitida, o HTML atual é preservado.
-export function metricWidget(m, { definition, idSeed, showAcademicRef } = {}) {
+// As opções são OPCIONAIS e retrocompatíveis: quando `definition` é fornecida,
+// o widget anexa o acesso à definição do símbolo PRINCIPAL (lexiconDisclosure)
+// logo adjacente ao dado; quando `context` ({ dimensoes, relacionados }) é
+// fornecido, anexa o grupo de símbolos de CONTEXTO (contextGroup) LOGO ABAIXO
+// do disclosure principal. Sem nenhuma das duas, o HTML atual é preservado.
+// Invariante: quando `context` é passado, `idSeed` é obrigatório e único por
+// widget na página (o helper não inventa seed; o sufixo '-ctx' evita colisão
+// com o disclosure principal do mesmo widget).
+export function metricWidget(m, { definition, context, idSeed, showAcademicRef } = {}) {
   return `
   <div class="metric">
     <span class="m-val">${esc(m.value)}</span>
     <span class="m-lbl">${esc(m.label)}</span>
     <span class="m-delta ${m.dir === 'down' ? 'down' : 'up'}">${m.dir === 'down' ? '▼' : '▲'} ${esc(m.delta)} <span class="muted">(demo)</span></span>
-  </div>${definition ? lexiconDisclosure(definition, { idSeed, showAcademicRef }) : ''}`;
+  </div>${definition ? lexiconDisclosure(definition, { idSeed, showAcademicRef }) : ''}${context ? contextGroup(context.dimensoes, context.relacionados, { idSeed }) : ''}`;
 }
 
-export function chartWidget(chart, { definition, idSeed, showAcademicRef } = {}) {
+export function chartWidget(chart, { definition, context, idSeed, showAcademicRef } = {}) {
   return `
   <div class="chart-box">
     <div class="cb-head">
@@ -192,7 +249,7 @@ export function chartWidget(chart, { definition, idSeed, showAcademicRef } = {})
       </div>
     </div>
     <div class="cb-body">${sparkChart(chart.series, { unit: chart.unit })}</div>
-  </div>${definition ? lexiconDisclosure(definition, { idSeed, showAcademicRef }) : ''}`;
+  </div>${definition ? lexiconDisclosure(definition, { idSeed, showAcademicRef }) : ''}${context ? contextGroup(context.dimensoes, context.relacionados, { idSeed }) : ''}`;
 }
 
 export function filtersWidget(filters, { interactive = false } = {}) {

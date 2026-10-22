@@ -15,7 +15,7 @@ export const STATES = {
 // Requisitos PR-01..PR-10 (âncoras de rastreabilidade).
 export const REQUIREMENTS = [
   { id: 'PR-01', subject: 'Contexto compreensível dos dados',
-    desc: 'Todo número traz unidade, período, fonte e definição do LAL — e o leitor abre essa definição no próprio ponto de consumo.' },
+    desc: 'Todo número traz unidade, período, fonte e definição do LAL — e o leitor abre essa definição no próprio ponto de consumo. Quando a visualização tem mais de um símbolo, o leitor alcança o símbolo principal (a medida) em destaque e os símbolos de contexto (dimensões efetivas; relacionados por similaridade vetorial são proposta).' },
   { id: 'PR-02', subject: 'Autoria manual e com IA',
     desc: 'Criar análises à mão ou via assistente, convergindo para a mesma definição.' },
   { id: 'PR-03', subject: 'Análises salvas e reutilizáveis',
@@ -105,6 +105,16 @@ export const CONTEXTS = {
         relations: ['classifica "Viagem monitorada"'],
       },
     },
+    // Relacionados por similaridade vetorial (NOVO, fictício e PROPOSTO).
+    // Representa a vizinhança do símbolo principal num banco vetorial associado
+    // a colunas do datalake, SEM afirmar que o protótipo executa busca vetorial
+    // real. Forma enxuta { term, note }: vizinhos SUGERIDOS, não símbolos já
+    // esclarecidos (por isso não recebem ficha Noção/Impacto).
+    relatedSymbols: [
+      { term: 'Ponto de embarque', note: 'Coluna vizinha no datalake (vínculo proposto).' },
+      { term: 'Linha',             note: 'Agregador sugerido; relação ilustrativa.' },
+      { term: 'Incidente de via',  note: 'Símbolo próximo no grafo semântico; ilustrativo.' },
+    ],
     catalog: [
       { id: 'an-mob-01', title: 'Demanda semanal por região', type: 'visualization' },
       { id: 'an-mob-02', title: 'Pontos com maior saturação', type: 'visualization' },
@@ -160,6 +170,14 @@ export const CONTEXTS = {
         relations: ['segmenta "Atendimento registrado"'],
       },
     },
+    // Relacionados por similaridade vetorial (NOVO, fictício e PROPOSTO).
+    // Mesma natureza do contexto de mobilidade: vizinhança proposta/ilustrativa,
+    // sem afirmar busca vetorial real nem vínculo efetivo com o datalake.
+    relatedSymbols: [
+      { term: 'Unidade ativa',  note: 'Coluna vizinha no datalake (vínculo proposto).' },
+      { term: 'Território',     note: 'Agregador sugerido; relação ilustrativa.' },
+      { term: 'Encaminhamento', note: 'Símbolo próximo no grafo semântico; ilustrativo.' },
+    ],
     catalog: [
       { id: 'an-sau-01', title: 'Volume semanal por nível', type: 'visualization' },
       { id: 'an-sau-02', title: 'Unidades com maior demanda', type: 'visualization' },
@@ -228,7 +246,7 @@ export const LAB_COMPONENTS = [
     events: [],
     data: ['Valor fictício', 'Rótulo', 'Variação (demo)'],
     deps: ['Resposta de dados + metadados (ilustrativa)'],
-    tests: ['Variação tem sinal e cor + texto (não só cor)', 'Coerência com gráfico e tabela da demo', 'Acesso à definição do LAL disponível no próprio widget (PR-01)'],
+    tests: ['Variação tem sinal e cor + texto (não só cor)', 'Coerência com gráfico e tabela da demo', 'Acesso à definição do LAL disponível no próprio widget (PR-01)', 'Com múltiplos símbolos: acesso ao principal + grupo de contexto (efetivo: dimensões; proposto: relacionados)'],
     note: 'Número coerente apenas dentro da demonstração.',
   },
   {
@@ -238,7 +256,7 @@ export const LAB_COMPONENTS = [
     events: ['onInspect()'],
     data: ['Série sintética', 'Metadados mínimos (PR-05)'],
     deps: ['Biblioteca gráfica (A CONFIRMAR — não assumida)'],
-    tests: ['Metadados sempre presentes', 'Descrição textual acompanha o gráfico', 'Acesso à definição do LAL disponível no próprio widget (PR-01)'],
+    tests: ['Metadados sempre presentes', 'Descrição textual acompanha o gráfico', 'Acesso à definição do LAL disponível no próprio widget (PR-01)', 'Com múltiplos símbolos: acesso ao principal + grupo de contexto (efetivo: dimensões; proposto: relacionados)'],
     note: 'Renderizado em SVG nativo só para a demo; a biblioteca gráfica real não é assumida.',
   },
   {
@@ -258,7 +276,7 @@ export const LAB_COMPONENTS = [
     events: ['onToggle()'],
     data: ['Definição fictícia do LAL'],
     deps: ['Referência semântica versionada (A CONFIRMAR)'],
-    tests: ['Fonte conceitual e fonte dos números aparecem separadas'],
+    tests: ['Fonte conceitual e fonte dos números aparecem separadas', 'Com múltiplos símbolos: acesso ao principal + grupo de contexto (efetivo: dimensões; proposto: relacionados)'],
     note: 'O versionamento consumível de símbolos do LAL ainda precisa ser verificado.',
   },
   {
@@ -299,7 +317,7 @@ export const LAB_COMPONENTS = [
 export const CONTRACTS = [
   {
     id: 'CT-semantic', title: 'Referência semântica (ilustrativo)', state: 'proposed',
-    note: 'Formato PROPOSTO. O versionamento consumível do LAL ainda precisa ser verificado.',
+    note: 'Formato PROPOSTO. O versionamento consumível do LAL ainda precisa ser verificado. Arquitetura proposta: o LAL fica em banco vetorial associado a tabelas/colunas do datalake — por isso a medida é o símbolo principal e as dimensões/relacionados são contexto; o protótipo não executa busca vetorial.',
     body: `{
   "kind": "semantic_reference",   // ilustrativo
   "symbolId": "lal:mobilidade/viagem-monitorada",

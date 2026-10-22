@@ -427,6 +427,32 @@ pre .c { color: #8aa0b8; font-style: italic; }
 .lex-def .cbody h5 { margin: 14px 0 2px; }
 .lex-def .cbody h5:first-child { margin-top: 0; }
 
+/* Grupo de símbolos de CONTEXTO: subordinado ao disclosure do símbolo
+   principal. A subordinação é transmitida por recuo + borda-guia + tipografia
+   menor + rótulo TEXTUAL ("Contexto do símbolo") — NUNCA por cor isolada.
+   Segue logo abaixo do disclosure principal em cada widget. */
+.lex-context {
+  margin: 6px 0 10px 16px;            /* recuo = aninhamento visual */
+  padding-left: 12px;
+  border-left: 2px solid var(--line); /* guia estrutural, neutra */
+}
+.lex-context > .lex-context-label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--ink-400);
+}
+.lex-context > .collapsible { margin-top: 0; }
+.lex-context > .collapsible > summary { font-size: 13px; }  /* menor que o principal (14px) */
+
+/* Bloco de relacionados dentro do grupo: lista sóbria, subordinada às dimensões. */
+.lex-context .related-block { margin-top: 12px; }
+.lex-context .related-origin { margin: 6px 0; }
+.lex-context .related-list { margin: 6px 0 0; padding-left: 18px; }
+.lex-context .related-list li { margin: 2px 0; font-size: 13px; }
+.lex-context .related-note { font-size: 12px; color: var(--ink-400); }
+
 /* ============================ Note / callout ============================ */
 
 .callout {
