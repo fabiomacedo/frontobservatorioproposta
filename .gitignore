@@ -12,5 +12,9 @@ Desktop.ini
 _shot-*.png
 *.log
 
+# Artefatos de workflow dos agentes (planos, revisões) e worktrees
+.agents/
+.worktrees/
+
 # Dependências (não usamos, mas por segurança)
 node_modules/
