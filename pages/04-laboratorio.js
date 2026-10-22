@@ -2,7 +2,7 @@
 import { LAB_COMPONENTS } from '../assets/js/data.js';
 import { store } from '../assets/js/state.js';
 import {
-  legend, stateChip, esc, anchor, techDetailBody,
+  legend, stateChip, esc, anchor, techDetailBody, academicRef,
   metricWidget, chartWidget, filtersWidget, embedPlaceholder, stateBoxes,
 } from '../assets/js/components.js';
 import { openDetail } from '../assets/js/app.js';
@@ -130,6 +130,11 @@ function methodology(ctx) {
         <dt>Relações</dt><dd>${d.relations.map(esc).join('; ')}</dd>
       </dl>
       <p class="small muted">Fonte conceitual (LAL) e fonte dos números são informações diferentes.</p>
+      <p class="small muted" style="margin:6px 0 0">Distinguir a fonte conceitual (LAL) da fonte dos
+      números decorre do elemento <strong>Fonte</strong> do LAL ampliado — referência documental de
+      base legal que dá rastreabilidade à origem de cada símbolo. É a contribuição original da
+      dissertação que fundamenta este modelo.</p>
+      ${academicRef('elemento “Fonte” do LAL')}
     </div>
   </details>`;
 }

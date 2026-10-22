@@ -1,6 +1,6 @@
 /* Página 9 — Roadmap e aceite [DOC-09] */
 import { ROADMAP } from '../assets/js/data.js';
-import { reqPill, esc, anchor } from '../assets/js/components.js';
+import { reqPill, esc, anchor, academicRef } from '../assets/js/components.js';
 
 export function render() {
   return `
@@ -42,5 +42,7 @@ export function render() {
       <li>A demonstração alterna entre dois contextos fictícios sem página à parte.</li>
       <li>Funciona localmente, com instruções de execução no README.</li>
     </ul>
+    <p class="small muted" style="margin-top:10px">O LAL preservado (PR-08) é o descrito
+    academicamente na dissertação que fundamenta o modelo. ${academicRef('LAL preservado (PR-08)')}</p>
   </section>`;
 }

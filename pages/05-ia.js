@@ -1,6 +1,6 @@
 /* Página 5 — Autoria e conversa com IA [DOC-05] */
 import { store } from '../assets/js/state.js';
-import { stateChip, esc, anchor, chartWidget } from '../assets/js/components.js';
+import { stateChip, esc, anchor, chartWidget, academicRef } from '../assets/js/components.js';
 
 export function render() {
   const ctx = store.getContext();
@@ -28,6 +28,8 @@ export function render() {
       <li>Consulta ${stateChip('verify', 'execução a confirmar')} e prévia.</li>
       <li>Salvar análise como objeto reutilizável.</li>
     </ol>
+    <p class="small muted">O contexto semântico (LAL) reunido pela IA segue o framework de léxico
+    descrito na dissertação. ${academicRef('framework de LAL')}</p>
   </section>
 
   <section class="block" id="conversa">

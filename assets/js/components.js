@@ -19,6 +19,20 @@ export function stateChip(stateKey, extraLabel) {
   return `<span class="state ${s.cls}"><span class="glyph" aria-hidden="true">${s.glyph}</span>${esc(label)}</span>`;
 }
 
+// Caminho do PDF relativo à raiz do site (mesma base das URLs de hash).
+export const DISSERTACAO_PDF = 'assets/docs/macedo-2019-bi-lexico-institutos-federais.pdf';
+export const DISSERTACAO_REF =
+  'MACÊDO, F. C. Abordagem de Business Intelligence associada a indicadores regulamentados por ' +
+  'leis brasileiras com suporte em léxico: o caso dos Institutos Federais de Educação. ' +
+  'Dissertação (Mestrado em Gestão e Estratégia) — UFRRJ, Seropédica, 2019.';
+
+// Chip de fundamentação acadêmica + link para o PDF.
+// NÃO é um estado de evidência (não entra em STATES nem na legenda global):
+// é um fato externo (dissertação publicada), não uma classificação da implementação.
+export function academicRef(linkLabel = 'fundamentação acadêmica') {
+  return `<a class="state academic" href="${DISSERTACAO_PDF}" target="_blank" rel="noopener" title="${esc(DISSERTACAO_REF)}"><span class="glyph" aria-hidden="true">§</span>${esc('Fundamentação acadêmica — ' + linkLabel)}</a>`;
+}
+
 // Legenda dos três estados.
 export function legend() {
   return `

@@ -1,6 +1,6 @@
 /* Página 1 — Visão executiva técnica [DOC-01] */
 import { REQUIREMENTS } from '../assets/js/data.js';
-import { legend, card, stateChip, esc, anchor } from '../assets/js/components.js';
+import { legend, card, stateChip, esc, anchor, academicRef } from '../assets/js/components.js';
 
 export function render() {
   const reqCards = REQUIREMENTS.map((r) => card({
@@ -43,7 +43,7 @@ export function render() {
     <div class="row" style="align-items:stretch">
       <div class="callout confirmed" style="flex:1;min-width:260px">
         <strong>Preservar.</strong> LAL, ETL e as APIs existentes. A evolução reaproveita o
-        investimento; não reconstrói o produto. ${stateChip('confirmed', 'por relato')}
+        investimento; não reconstrói o produto.
       </div>
       <div class="callout" style="flex:1;min-width:260px">
         <strong>Não objetivos.</strong> Não é a interface de produção; não conecta a serviços reais;
@@ -62,6 +62,9 @@ export function render() {
         <p>Constrói a semântica dos símbolos dos domínios: noção, impacto, sinônimos, contextos,
         fontes e relações.</p>
         ${stateChip('confirmed', 'por relato')}
+        <p class="small muted" style="margin:8px 0 0">O conceito de LAL (Léxico Ampliado de Linguagem)
+        tem base na dissertação de mestrado do autor (UFRRJ, 2019).</p>
+        ${academicRef('conceito de LAL')}
       </div>
       <div class="card tool-card etl">
         <span class="pid">ETL</span>

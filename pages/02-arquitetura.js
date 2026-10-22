@@ -1,6 +1,6 @@
 /* Página 2 — Arquitetura e integrações [DOC-02] */
 import { currentDiagram, proposedDiagram, NODE_INFO } from '../assets/js/diagrams.js';
-import { legend, stateChip, esc, anchor } from '../assets/js/components.js';
+import { legend, stateChip, esc, anchor, academicRef } from '../assets/js/components.js';
 import { openDetail } from '../assets/js/app.js';
 
 export function render() {
@@ -30,6 +30,10 @@ export function render() {
     <h3>Diagrama proposto de responsabilidades ${anchor('arq-proposta')}</h3>
     <p class="sub">LAL, vínculos do ETL, integração de backend, experiência Observatório e Superset.</p>
     ${proposedDiagram()}
+    <p class="small muted" style="margin-top:10px">A separação de papéis e a arquitetura semântica
+    (Arquitetura da Informação baseada em LAL) seguem o modelo acadêmico da dissertação, que organiza
+    o BI em quatro etapas: Fontes de dados → Semântica (AI + LAL) → Transformação → Apresentação.</p>
+    ${academicRef('arquitetura de BI semântica')}
   </section>
 
   <section class="block" id="superset">

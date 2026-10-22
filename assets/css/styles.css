@@ -266,6 +266,11 @@ h4 { font-size: 15px; margin: 18px 0 8px; color: var(--ink-700); }
 .state.verify    { color: var(--st-verify);     background: var(--st-verify-bg);     border-color: #cfc9f3; }
 /* glyphs distintos (forma + texto, nao so cor): confirmado, proposto, a confirmar */
 
+/* Fundamentacao academica: NAO e um estado de evidencia; e referencia a dissertacao.
+   Rotulo + glifo (§) + cor; a cor nunca e o unico indicador. */
+.state.academic { color: var(--ink-700); background: var(--paper-3); border-color: var(--line); text-decoration: none; }
+.state.academic:hover { background: var(--paper-2); border-color: var(--ink-300); }
+
 .legend {
   display: flex;
   flex-wrap: wrap;
