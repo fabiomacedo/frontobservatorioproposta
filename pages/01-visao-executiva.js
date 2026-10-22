@@ -72,6 +72,10 @@ export function render() {
         <p>Extrai e transforma dados e associa o léxico às tabelas e campos do datalake. O frontend
         atual consulta a API do ETL.</p>
         ${stateChip('confirmed', 'por relato')}
+        <p class="small muted" style="margin:8px 0 0">Acoplar o léxico à camada de dados tem base
+        acadêmica ${academicRef('LAL acoplado ao datamart')}: na dissertação (2019) o LAL vira um
+        datamart próprio, ligado ao datamart de negócio pela dimensão de símbolo. Aqui é a mesma ideia
+        transposta do datamart relacional para o datalake. ${stateChip('proposed', 'léxico sobre datalake')}</p>
       </div>
       <div class="card tool-card obs">
         <span class="pid">Observatório</span>
