@@ -35,6 +35,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = path.resolve(__dirname, '..'); // app-demo/
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const DEBUG_PORT = 9533;
+const AC_TOTAL = 25;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -362,6 +363,95 @@ const IN_PAGE_DRIVER = `(async () => {
       set('AC-20', coerente, 'reset volta a contexto A / perfil padrão (estado coerente)');
     }
 
+    // ---- AC-21: anon não vê análises privadas em catálogo/dashboard ----
+    {
+      store.reset();
+      store.setContext('acad');
+      store.setProfile('anon');
+      // Catálogo
+      await go('#catalog');
+      await wait(150);
+      const catHtml = main().innerHTML;
+      const privCfg = store.listAnalyses({ contextId:'acad' }).filter(a => a.visibility !== 'publica');
+      const pubCfg = store.listAnalyses({ contextId:'acad' }).filter(a => a.visibility === 'publica');
+      const noPrivCat = privCfg.every(a => !catHtml.includes('data-open-an="' + a.id + '"'));
+      const hasPubCat = pubCfg.some(a => catHtml.includes('data-open-an="' + a.id + '"'));
+      // Dashboard
+      await go('#dashboard');
+      await wait(150);
+      const dashHtml = main().innerHTML;
+      const noPrivDash = privCfg.every(a => !a.def || !dashHtml.includes('>' + a.title + '<'));
+      set('AC-21', noPrivCat && hasPubCat && noPrivDash, 'anon vê só análises públicas em catálogo/dashboard');
+      store.setProfile('author_pub');
+    }
+
+    // ---- AC-22: anon em publicação privada vê estado restrito (denied), sem conteúdo ----
+    {
+      store.setProfile('anon');
+      await go('#publicacao/' + encodeURIComponent('pub-acad-1'));
+      await wait(150);
+      const html = main().innerHTML;
+      const denied = /state-denied/.test(html);
+      const semConteudo = !q('.pub-consume-body') || !/pub-render-block/.test(html);
+      set('AC-22', denied && semConteudo, 'anon em publicação privada vê denied, sem conteúdo');
+      store.setProfile('author_pub');
+    }
+
+    // ---- AC-23: anon em publicação pública publicada consome o conteúdo ----
+    {
+      store.setProfile('anon');
+      await go('#publicacao/' + encodeURIComponent('pub-acad-pub-1'));
+      await wait(150);
+      const html = main().innerHTML;
+      const temConteudo = !!q('.pub-consume-body') && /pub-render-block/.test(html);
+      const naoDenied = !/state-denied/.test(html);
+      set('AC-23', temConteudo && naoDenied, 'anon consome publicação pública publicada');
+      store.setProfile('author_pub');
+    }
+
+    // ---- AC-24: drawer de metodologia mostra principal + grupo de dimensões resolvidas ----
+    {
+      store.setContext('acad');
+      await go('#dashboard');
+      await wait(150);
+      // Aciona o botão de metodologia de 'Matrículas ativas' (appliesTo não-vazio).
+      const btns = qa('[data-method]');
+      const btn = btns.find(b => b.getAttribute('data-method') === 'Matrículas ativas');
+      if (btn) btn.click();
+      await wait(120);
+      const drawer = q('#overlay-root');
+      const dh = drawer ? drawer.innerHTML : '';
+      const temRotulos = /Noção/.test(dh) && /Fonte/.test(dh) && /Relações/.test(dh);
+      const temDims = /Campus/.test(dh) && /Modalidade/.test(dh) && /Período/.test(dh);
+      const temChip = /status-tag/.test(dh) && /Proposto/.test(dh);
+      set('AC-24', !!btn && temRotulos && temDims && temChip, 'drawer: rótulos literais + dimensões resolvidas + chip Proposto');
+      // Fecha o drawer (Esc) para não interferir no AC seguinte.
+      const panel = drawer && drawer.querySelector('.ov-panel');
+      if (panel) panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await wait(80);
+    }
+
+    // ---- AC-25: relacionados marcados proposto/ilustrativo com texto de origem (sem busca vetorial) ----
+    {
+      store.setContext('acad');
+      await go('#dashboard');
+      await wait(150);
+      const btns = qa('[data-method]');
+      const btn = btns.find(b => b.getAttribute('data-method') === 'Matrículas ativas');
+      if (btn) btn.click();
+      await wait(120);
+      const drawer = q('#overlay-root');
+      const dh = drawer ? drawer.innerHTML : '';
+      const temOrigem = /n[aã]o executa busca vetorial/i.test(dh);
+      const ilustrativo = /ilustrativos/i.test(dh);
+      const semIframe = qa('iframe').length === 0;
+      set('AC-25', temOrigem && ilustrativo && semIframe, 'relacionados ilustrativos; origem afirma não executar busca vetorial');
+      const panel = drawer && drawer.querySelector('.ov-panel');
+      if (panel) panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await wait(80);
+      store.setProfile('author_pub');
+    }
+
     await go('#dashboard');
   } catch (e) {
     results.__exception = { ok:false, note: (e && e.stack) ? e.stack : String(e) };
@@ -477,9 +567,9 @@ async function main() {
     await sleep(300);
 
     // ---- Relatório ----
-    console.log('\n=== Resultado AC-01..AC-20 ===');
+    console.log(`\n=== Resultado AC-01..AC-${String(AC_TOTAL).padStart(2, '0')} ===`);
     const acOrder = [];
-    for (let i = 1; i <= 20; i++) acOrder.push('AC-' + String(i).padStart(2, '0'));
+    for (let i = 1; i <= AC_TOTAL; i++) acOrder.push('AC-' + String(i).padStart(2, '0'));
     let acPass = 0, acFail = 0;
     const acVerified = [];
     for (const ac of acOrder) {
@@ -492,14 +582,14 @@ async function main() {
       console.log('  Exceção no driver: ' + acResults.__exception.note);
     }
 
-    console.log(`\nACs OK: ${acPass}/20  (falhas: ${acFail})`);
+    console.log(`\nACs OK: ${acPass}/${AC_TOTAL}  (falhas: ${acFail})`);
     console.log(`Exceções de console: ${consoleExceptions.length}`);
     if (consoleExceptions.length) consoleExceptions.forEach((e) => console.log('   ! ' + e));
     console.log(`Requisições de rede totais observadas: ${networkRequests.length}`);
     console.log(`Requisições a hosts externos: ${externalRequests.length}`);
     if (externalRequests.length) externalRequests.forEach((u) => console.log('   -> ' + u));
 
-    const approved = acPass === 20 && consoleExceptions.length === 0 && externalRequests.length === 0 && !acResults.__exception;
+    const approved = acPass === AC_TOTAL && consoleExceptions.length === 0 && externalRequests.length === 0 && !acResults.__exception;
     console.log(`\nVEREDITO: ${approved ? 'APROVADO' : 'REPROVADO'}`);
     exitCode = approved ? 0 : 1;
 

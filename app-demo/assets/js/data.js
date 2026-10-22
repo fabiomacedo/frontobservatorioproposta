@@ -321,6 +321,7 @@ export const CONTEXTS = {
         title: 'Matrículas ativas por campus',
         description: 'Comparação do total de matrículas ativas entre campi (dados fictícios).',
         origin: 'manual',
+        visibility: 'publica',
         def: { measure: 'matriculas', dimension: 'campus', filters: {}, sort: 'desc' },
         viz: 'bar',
         semanticRefs: ['Matrículas ativas'],
@@ -334,6 +335,7 @@ export const CONTEXTS = {
         title: 'Evolução das matrículas por período',
         description: 'Série temporal de matrículas ativas (dados fictícios).',
         origin: 'manual',
+        visibility: 'privada',
         def: { measure: 'matriculas', dimension: 'periodo', filters: {}, sort: 'asc' },
         viz: 'line',
         semanticRefs: ['Matrículas ativas'],
@@ -347,6 +349,7 @@ export const CONTEXTS = {
         title: 'Painel acadêmico (Superset — simulado)',
         description: 'Recurso ilustrativo. Integração, autenticação e recursos reais dependem de validação técnica.',
         origin: 'superset_demo',
+        visibility: 'privada',
         def: null,
         viz: 'embed',
         semanticRefs: [],
@@ -355,21 +358,62 @@ export const CONTEXTS = {
         updatedAt: '12/03/2026 08:30 (data fictícia)',
       },
     ],
-    seedPublication: {
-      id: 'pub-acad-1',
-      contextId: 'acad',
-      title: 'Panorama acadêmico — rascunho',
-      description: 'Publicação exemplo (fictícia) do contexto acadêmico.',
-      visibility: 'privada',
-      draft: {
-        blocks: [
-          { id: 'b-acad-1', type: 'title', content: 'Panorama acadêmico' },
-          { id: 'b-acad-2', type: 'text', content: 'Visão geral das matrículas ativas por campus (dados fictícios).' },
-          { id: 'b-acad-3', type: 'chart', analysisId: 'an-acad-1' },
-        ],
+    seedPublications: [
+      // índice 0 = rascunho privado atual (alvo do compositor / defaultPublication).
+      {
+        id: 'pub-acad-1',
+        contextId: 'acad',
+        title: 'Panorama acadêmico — rascunho',
+        description: 'Publicação exemplo (fictícia) do contexto acadêmico.',
+        visibility: 'privada',
+        draft: {
+          blocks: [
+            { id: 'b-acad-1', type: 'title', content: 'Panorama acadêmico' },
+            { id: 'b-acad-2', type: 'text', content: 'Visão geral das matrículas ativas por campus (dados fictícios).' },
+            { id: 'b-acad-3', type: 'chart', analysisId: 'an-acad-1' },
+          ],
+        },
+        publishedSnapshot: null,
       },
-      publishedSnapshot: null,
-    },
+      // índice 1 = publicação pública já publicada (consumível por qualquer cidadão).
+      {
+        id: 'pub-acad-pub-1',
+        contextId: 'acad',
+        title: 'Panorama acadêmico — publicação pública',
+        description: 'Publicação pública (fictícia) consumível por qualquer cidadão.',
+        visibility: 'publica',
+        draft: {
+          blocks: [
+            { id: 'b-acad-pub-1', type: 'title', content: 'Panorama acadêmico (público)' },
+            { id: 'b-acad-pub-2', type: 'chart', analysisId: 'an-acad-1' },
+          ],
+        },
+        publishedSnapshot: {
+          version: 1,
+          blocks: [
+            { id: 'b-acad-pub-1', type: 'title', content: 'Panorama acadêmico (público)' },
+            { id: 'b-acad-pub-2', type: 'chart', analysisId: 'an-acad-1' },
+          ],
+          analysesCopy: {
+            'an-acad-1': {
+              id: 'an-acad-1',
+              contextId: 'acad',
+              title: 'Matrículas ativas por campus',
+              description: 'Comparação do total de matrículas ativas entre campi (dados fictícios).',
+              origin: 'manual',
+              visibility: 'publica',
+              def: { measure: 'matriculas', dimension: 'campus', filters: {}, sort: 'desc' },
+              viz: 'bar',
+              semanticRefs: ['Matrículas ativas'],
+              meta: { unit: 'matrículas', period: '2026.1', sourceLabel: 'Base acadêmica (fictícia)' },
+              createdAt: '10/03/2026 14:20 (data fictícia)',
+              updatedAt: '10/03/2026 14:20 (data fictícia)',
+            },
+          },
+          savedAt: '16/03/2026 09:00 (data fictícia)',
+        },
+      },
+    ],
     supersetResource: {
       analysisId: 'an-acad-superset',
       label: 'Dashboard Superset (simulado)',
@@ -528,6 +572,7 @@ export const CONTEXTS = {
         title: 'Taxa de realização por território',
         description: 'Comparação da taxa de realização entre territórios (dados fictícios).',
         origin: 'manual',
+        visibility: 'privada',
         def: { measure: 'taxa_realizacao', dimension: 'territorio', filters: {}, sort: 'desc' },
         viz: 'bar',
         semanticRefs: ['Taxa de realização'],
@@ -541,6 +586,7 @@ export const CONTEXTS = {
         title: 'Status das entrevistas',
         description: 'Distribuição de status (fixture não-exata {5,3,3,1}; percentuais reconciliados).',
         origin: 'manual',
+        visibility: 'publica',
         def: { measure: 'status_entrevista', dimension: 'territorio', filters: {}, sort: 'desc' },
         viz: 'donut',
         semanticRefs: ['Status da entrevista'],
@@ -554,6 +600,7 @@ export const CONTEXTS = {
         title: 'Painel de cobertura (Superset — simulado)',
         description: 'Recurso ilustrativo. Integração, autenticação e recursos reais dependem de validação técnica.',
         origin: 'superset_demo',
+        visibility: 'privada',
         def: null,
         viz: 'embed',
         semanticRefs: [],
@@ -562,21 +609,62 @@ export const CONTEXTS = {
         updatedAt: '15/03/2026 10:10 (data fictícia)',
       },
     ],
-    seedPublication: {
-      id: 'pub-ent-1',
-      contextId: 'entrevistas',
-      title: 'Cobertura de entrevistas — rascunho',
-      description: 'Publicação exemplo (fictícia) do contexto de entrevistas.',
-      visibility: 'privada',
-      draft: {
-        blocks: [
-          { id: 'b-ent-1', type: 'title', content: 'Cobertura de entrevistas' },
-          { id: 'b-ent-2', type: 'text', content: 'Distribuição de status das entrevistas (dados fictícios).' },
-          { id: 'b-ent-3', type: 'chart', analysisId: 'an-ent-status' },
-        ],
+    seedPublications: [
+      // índice 0 = rascunho privado atual (alvo do compositor / defaultPublication).
+      {
+        id: 'pub-ent-1',
+        contextId: 'entrevistas',
+        title: 'Cobertura de entrevistas — rascunho',
+        description: 'Publicação exemplo (fictícia) do contexto de entrevistas.',
+        visibility: 'privada',
+        draft: {
+          blocks: [
+            { id: 'b-ent-1', type: 'title', content: 'Cobertura de entrevistas' },
+            { id: 'b-ent-2', type: 'text', content: 'Distribuição de status das entrevistas (dados fictícios).' },
+            { id: 'b-ent-3', type: 'chart', analysisId: 'an-ent-status' },
+          ],
+        },
+        publishedSnapshot: null,
       },
-      publishedSnapshot: null,
-    },
+      // índice 1 = publicação pública já publicada (consumível por qualquer cidadão).
+      {
+        id: 'pub-ent-pub-1',
+        contextId: 'entrevistas',
+        title: 'Cobertura de entrevistas — publicação pública',
+        description: 'Publicação pública (fictícia) consumível por qualquer cidadão.',
+        visibility: 'publica',
+        draft: {
+          blocks: [
+            { id: 'b-ent-pub-1', type: 'title', content: 'Cobertura de entrevistas (público)' },
+            { id: 'b-ent-pub-2', type: 'chart', analysisId: 'an-ent-status' },
+          ],
+        },
+        publishedSnapshot: {
+          version: 1,
+          blocks: [
+            { id: 'b-ent-pub-1', type: 'title', content: 'Cobertura de entrevistas (público)' },
+            { id: 'b-ent-pub-2', type: 'chart', analysisId: 'an-ent-status' },
+          ],
+          analysesCopy: {
+            'an-ent-status': {
+              id: 'an-ent-status',
+              contextId: 'entrevistas',
+              title: 'Status das entrevistas',
+              description: 'Distribuição de status (fixture não-exata {5,3,3,1}; percentuais reconciliados).',
+              origin: 'manual',
+              visibility: 'publica',
+              def: { measure: 'status_entrevista', dimension: 'territorio', filters: {}, sort: 'desc' },
+              viz: 'donut',
+              semanticRefs: ['Status da entrevista'],
+              meta: { unit: 'entrevistas', period: '2026-T1', sourceLabel: 'Registro de campo (fictício)' },
+              createdAt: '14/03/2026 11:05 (data fictícia)',
+              updatedAt: '14/03/2026 11:05 (data fictícia)',
+            },
+          },
+          savedAt: '16/03/2026 14:35 (data fictícia)',
+        },
+      },
+    ],
     supersetResource: {
       analysisId: 'an-ent-superset',
       label: 'Dashboard Superset (simulado)',

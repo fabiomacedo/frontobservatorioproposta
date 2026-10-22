@@ -68,8 +68,10 @@ async function main() {
     emptyAnalysis, validateAnalysis, normalizeText, normalizeAnalysisText,
     TITLE_MAX, TEXT_MAX,
   } = analysis;
-  const { can, PERMISSION_MATRIX, PROFILES } = permissions;
+  const { can, canView, isPublic, PERMISSION_MATRIX, PROFILES } = permissions;
   const { CONTEXTS, fixtureStatusCounts } = data;
+  const lexicon = await import('../assets/js/lexicon.js');
+  const { buildLexiconContext } = lexicon;
 
   const acad = CONTEXTS.acad;
   const ent = CONTEXTS.entrevistas;
@@ -308,7 +310,7 @@ async function main() {
   /* =======================================================================
      5) Permissões — matriz can()×perfil.
      ======================================================================= */
-  deepEq(PROFILES, ['consumer', 'author_nopub', 'author_pub'], 'PROFILES conforme design');
+  deepEq(PROFILES, ['anon', 'consumer', 'author_nopub', 'author_pub'], 'PROFILES inclui anon');
   for (const profile of PROFILES) {
     const row = PERMISSION_MATRIX[profile];
     for (const action of ['view', 'edit', 'compose', 'publish']) {
@@ -329,6 +331,39 @@ async function main() {
   eq(can('view', { activeProfileId: 'intruso' }), false, 'perfil desconhecido => default deny');
 
   /* =======================================================================
+     5b) Visibilidade de objeto — isPublic/canView (FEAT-002).
+     ======================================================================= */
+  eq(isPublic({ visibility: 'publica' }), true, 'isPublic reconhece visibility=publica');
+  eq(isPublic({ visibility: 'privada' }), false, 'isPublic: privada => false');
+  eq(isPublic({}), false, 'ausência de visibility => privada (fail-closed)');
+  eq(canView({ visibility: 'privada' }, { activeProfileId: 'anon' }), false, 'anon não vê privado');
+  eq(canView({ visibility: 'publica' }, { activeProfileId: 'anon' }), true, 'anon vê público');
+  eq(canView({ visibility: 'privada' }, { activeProfileId: 'author_pub' }), true, 'logado conhecido vê tudo');
+  eq(canView({ visibility: 'privada' }, { activeProfileId: 'intruso' }), false, 'perfil desconhecido => fail-safe anon (só público)');
+  eq(canView({ visibility: 'publica' }, { activeProfileId: 'intruso' }), true, 'perfil desconhecido vê público');
+
+  /* =======================================================================
+     5c) buildLexiconContext — módulo puro lexicon.js (FEAT-002).
+     ======================================================================= */
+  {
+    // appliesTo resolvido a labels do contexto acad (Campus/Modalidade).
+    const ctxA = buildLexiconContext({ appliesTo: ['campus', 'modalidade'] }, acad, 'Matrículas ativas');
+    deepEq(ctxA.dimensoes.map((d) => d.label), ['Campus', 'Modalidade'],
+      'buildLexiconContext resolve labels das dimensões por key');
+    deepEq(ctxA.relacionados, acad.methodology['Matrículas ativas'].relations,
+      'buildLexiconContext usa relations do termo como relacionados');
+    // Guard de vazio: appliesTo [] e termo sem relations => tudo vazio.
+    const ctxEmpty = buildLexiconContext({ appliesTo: [] }, acad, 'termo-inexistente');
+    deepEq(ctxEmpty, { dimensoes: [], relacionados: [] }, 'guard de vazio => {dimensoes:[],relacionados:[]}');
+    // measureCfg null tolerado.
+    deepEq(buildLexiconContext(null, acad, 'termo-inexistente'), { dimensoes: [], relacionados: [] },
+      'buildLexiconContext tolera measureCfg null');
+    // Fallback: key sem dimensão correspondente => label = própria key.
+    const ctxFallback = buildLexiconContext({ appliesTo: ['inexistente'] }, acad, 'Matrículas ativas');
+    eq(ctxFallback.dimensoes[0].label, 'inexistente', 'fallback: key sem dimensão => label = própria key');
+  }
+
+  /* =======================================================================
      6) Store — contrato {ok,denied,errors} SEM mutação quando negado,
         setProfile persiste, migração/seed, uidSeq/clockSeq monotônicos.
      ======================================================================= */
@@ -341,6 +376,13 @@ async function main() {
   eq(st.version, 2, 'store seedado na versão 2');
   eq(st.activeContextId, 'acad', 'seed inicia no contexto acad');
   eq(st.activeProfileId, 'author_pub', 'seed inicia no perfil author_pub');
+
+  // --- Seed: DUAS publicações por contexto (rascunho privado + pública publicada) ---
+  eq(store.listPublications({ contextId: 'acad' }).length, 2, 'acad tem 2 publicações seed');
+  eq(store.listPublications({ contextId: 'entrevistas' }).length, 2, 'entrevistas tem 2 publicações seed');
+  eq(store.getPublication('pub-acad-1').publishedSnapshot, null, 'pub-acad-1 segue rascunho (publishedSnapshot null)');
+  check(store.getPublication('pub-acad-pub-1').publishedSnapshot.version >= 1, 'pub-acad-pub-1 publicada (version >= 1)');
+  eq(store.getPublication('pub-acad-pub-1').visibility, 'publica', 'pub-acad-pub-1 é pública');
 
   // --- Ação NEGADA não muta estado (contrato {ok,denied}) ---
   store.setProfile('consumer');

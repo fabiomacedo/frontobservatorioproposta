@@ -59,7 +59,7 @@ function seed() {
   for (const ctxId of Object.keys(CONTEXTS)) {
     const ctx = CONTEXTS[ctxId];
     // Config do contexto (sem os seeds, que viram entidades de topo).
-    const { seedAnalyses, seedPublication, ...ctxConfig } = ctx;
+    const { seedAnalyses, seedPublications, ...ctxConfig } = ctx;
     contexts[ctxId] = clone(ctxConfig);
 
     // Análises semente (inclui 1 superset_demo por contexto — já em data.js).
@@ -68,13 +68,11 @@ function seed() {
       maxId = Math.max(maxId, idNum(an.id));
     }
 
-    // 1 publicação rascunho por contexto.
-    if (seedPublication) {
-      publications[seedPublication.id] = clone(seedPublication);
-      maxId = Math.max(maxId, idNum(seedPublication.id));
-      for (const b of seedPublication.draft?.blocks || []) {
-        maxId = Math.max(maxId, idNum(b.id));
-      }
+    // Publicações semente por contexto (rascunho privado + pública publicada).
+    for (const p of seedPublications || []) {
+      publications[p.id] = clone(p);
+      maxId = Math.max(maxId, idNum(p.id));
+      for (const b of (p.draft && p.draft.blocks) || []) maxId = Math.max(maxId, idNum(b.id));
     }
 
     // Filtros do contexto no seu recorte limpo (clearedTo de cada filtro).

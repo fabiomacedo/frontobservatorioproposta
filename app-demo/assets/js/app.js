@@ -39,6 +39,7 @@ const byId = (id) => ROUTES.find((r) => r.id === id);
 
 /* Rótulos amigáveis dos perfis simulados (design (i)). */
 const PROFILE_LABELS = {
+  anon: 'Visitante anônimo (não logado)',
   consumer: 'Consumidor (só leitura)',
   author_nopub: 'Autor sem publicação',
   author_pub: 'Autor com publicação',
@@ -140,17 +141,52 @@ export function closeOverlay(onClose) {
   if (typeof onClose === 'function') onClose();
 }
 
-/* ---------- Drawer de metodologia (overlay) ---------- */
-export function openMethodology(term, def) {
-  const body = def
+/* Bloco de contexto subordinado do drawer (dimensões efetivas + relacionados
+   propostos). Guard de vazio: sem dimensões nem relacionados => string vazia
+   (drawer mostra só o principal), espelhando dimensionDefsDisclosure do site. */
+function methodologyContext(context) {
+  const dimensoes = (context && context.dimensoes) || [];
+  const relacionados = (context && context.relacionados) || [];
+  if (!dimensoes.length && !relacionados.length) return '';
+
+  const dimBlock = dimensoes.length
+    ? `<div class="lal-ctx-group">
+        <h4>Dimensões/recortes</h4>
+        <ul>${dimensoes.map((d) =>
+          `<li><strong>${esc(d.label)}</strong> <span class="muted">recorta/segmenta este indicador</span></li>`).join('')}</ul>
+      </div>`
+    : '';
+
+  const relBlock = relacionados.length
+    ? `<div class="lal-ctx-group">
+        <h4>Relacionados <span class="status-tag">◆ Proposto</span></h4>
+        <ul>${relacionados.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
+        <p class="small muted related-origin">Proposta de arquitetura: o LAL fica em banco vetorial, associado a tabelas e colunas do datalake — por isso a medida é o símbolo principal e as dimensões/relacionados são contexto. Esta demonstração não executa busca vetorial; os vínculos acima são ilustrativos.</p>
+      </div>`
+    : '';
+
+  return `<div class="lal-context">
+    <h3 class="lal-context-title">Contexto do símbolo</h3>
+    ${dimBlock}${relBlock}
+  </div>`;
+}
+
+/* ---------- Drawer de metodologia (overlay) ----------
+   LAL público: principal (Noção/Como é calculado/Fonte/Relações) + bloco de
+   contexto subordinado (dimensões efetivas + relacionados "Proposto"/ilustrativos).
+   `context` (3º param opcional) é a saída de buildLexiconContext; sem ele, ou
+   quando ambas as listas são vazias, o drawer rende só o principal (guard). */
+export function openMethodology(term, def, context) {
+  const main = def
     ? `<dl>
-        <dt>Definição (léxico)</dt><dd>${esc(def.notion)}</dd>
+        <dt>Noção</dt><dd>${esc(def.notion)}</dd>
         <dt>Como é calculado</dt><dd>${esc(def.formula)}</dd>
-        <dt>Fonte conceitual</dt><dd>${esc(def.source)}</dd>
+        <dt>Fonte</dt><dd>${esc(def.source)}</dd>
         <dt>Relações</dt><dd>${(def.relations || []).map(esc).join('; ')}</dd>
       </dl>
       <p class="small muted" style="margin-top:16px">Dados e definições fictícios, para demonstração.</p>`
     : `<p class="muted">Definição não disponível nesta demonstração.</p>`;
+  const body = `${main}${methodologyContext(context)}`;
   openOverlay(`
     <aside class="drawer-inner" aria-label="Metodologia">
       <div class="d-head"><h3 id="ov-title">Metodologia · ${esc(term)}</h3>
@@ -349,7 +385,7 @@ function buildShell() {
       </div>
       <div class="ctx">
         <label for="profile-select">Perfil</label>
-        <select id="profile-select" aria-label="Perfil simulado" title="Permissões simuladas no navegador. A implementação real exigirá validação no backend.">${profOptions}</select>
+        <select id="profile-select" aria-label="Perfil simulado" title="Perfil é simulação no navegador (inclui 'Visitante anônimo'). A validação real de permissões ocorre no backend.">${profOptions}</select>
       </div>
       <form class="search" id="search-form" role="search">
         <span class="mi" aria-hidden="true">🔎</span>

@@ -22,7 +22,8 @@ import { esc, barChart, donutChart, sparkline } from './charts.js';
 import { runQuery } from './query.js';
 import { renderAnalysis } from './render.js';
 import { emptyAnalysis, validateAnalysis, allowedVizForKind, normalizeText, TITLE_MAX, TEXT_MAX } from './analysis.js';
-import { can } from './permissions.js';
+import { can, canView } from './permissions.js';
+import { buildLexiconContext } from './lexicon.js';
 import { store } from './store.js';
 import {
   openMethodology, openConfirm, openEditorOverlay, closeOverlay,
@@ -161,7 +162,7 @@ export const dashboard = {
       </div>`;
     }).join('');
 
-    const analyses = store.listAnalyses({ contextId: c.id }).filter((a) => a.origin !== 'superset_demo' && a.def);
+    const analyses = store.listAnalyses({ contextId: c.id }).filter((a) => a.origin !== 'superset_demo' && a.def && canView(a, store.get()));
     const panels = analyses.slice(0, 4).map((a) => dashPanel(a, f)).join('');
 
     return `
@@ -193,7 +194,7 @@ export const catalog = {
       contextId: c.id,
       origin: catalogOriginFilter || undefined,
       q,
-    });
+    }).filter((a) => canView(a, store.get()));
     const originBtns = ['', 'manual', 'ai', 'superset_demo'].map((o) =>
       `<button class="btn sm ${catalogOriginFilter === o ? 'primary' : 'ghost'}" data-origin="${esc(o)}">${o ? esc(ORIGIN_LABEL[o]) : 'Todas as origens'}</button>`).join('');
 
@@ -318,7 +319,7 @@ function addAnalysisToPublication(id) {
 function defaultPublication() {
   const c = ctx();
   const list = store.listPublications({ contextId: c.id });
-  return list[0] || null;
+  return list.find((p) => !p.publishedSnapshot) || list[0] || null;
 }
 
 /* =========================================================================
@@ -1054,6 +1055,9 @@ export function publicationView(id, fromAuthoring) {
     render() {
       const pub = store.getPublication(id);
       if (!pub) return wrapConsumption(stateView('missing', 'Publicação não encontrada nesta demonstração.'), false);
+      // Visibilidade antes do estado de publicação: anon/perfil não reconhecido
+      // sobre publicação privada vê "restrito" (não "ainda não publicada").
+      if (!canView(pub, store.get())) return wrapConsumption(stateView('denied', 'Publicação restrita. Entre como gestor para acessar.'), fromAuthoring);
       const snap = pub.publishedSnapshot;
       if (!snap) return wrapConsumption(stateView('missing', 'Esta publicação ainda não foi publicada.'), fromAuthoring);
       const resolve = (anId) => (snap.analysesCopy && snap.analysesCopy[anId]) || null; // SEMPRE via snapshot (NIT-1)
@@ -1121,8 +1125,10 @@ function wireFilters(root) {
 function wireMethod(root) {
   const c = ctx();
   root.querySelectorAll('[data-method]').forEach((b) => b.addEventListener('click', () => {
-    const term = b.getAttribute('data-method');
-    openMethodology(term, (c.methodology || {})[term]);
+    const term = b.getAttribute('data-method');                       // term = lexicon
+    const measure = (c.measures || []).find((m) => m.lexicon === term) || null; // lexicon -> medida
+    const context = buildLexiconContext(measure, c, term);            // measure pode ser null
+    openMethodology(term, (c.methodology || {})[term], context);
   }));
 }
 function wireGoto(root) {

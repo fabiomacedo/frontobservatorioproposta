@@ -17,12 +17,13 @@
    demo); declarada para futuro gatilho, nenhum mutador atual a consome.
    ========================================================================= */
 
-export const PROFILES = ['consumer', 'author_nopub', 'author_pub'];
+export const PROFILES = ['anon', 'consumer', 'author_nopub', 'author_pub'];
 
 export const ACTIONS = ['view', 'edit', 'compose', 'publish'];
 
 /* Matriz de permissões por perfil. */
 export const PERMISSION_MATRIX = {
+  anon: { view: true, edit: false, compose: false, publish: false },
   consumer: { view: true, edit: false, compose: false, publish: false },
   author_nopub: { view: true, edit: true, compose: true, publish: false },
   author_pub: { view: true, edit: true, compose: true, publish: true },
@@ -38,6 +39,27 @@ export function can(action, state) {
   const row = PERMISSION_MATRIX[profileId];
   if (!row) return false; // perfil desconhecido => default deny
   return row[action] === true;
+}
+
+/* -------------------------------------------------------------------------
+   Visibilidade de OBJETO (separada de can(action,state)) — FEAT-002.
+   `can()` responde "este perfil pode executar esta AÇÃO?"; as funções abaixo
+   respondem "este perfil pode VER este OBJETO?".
+   ------------------------------------------------------------------------- */
+
+/* isPublic(obj): qualquer valor != 'publica' (ou ausência) => privado
+   (fail-closed). obj: { visibility?: 'publica'|'privada' }. */
+export function isPublic(obj) {
+  return !!obj && obj.visibility === 'publica';
+}
+
+/* canView(obj, state): pode o perfil VER este objeto?
+   - anon OU perfil não reconhecido (fail-safe) => só públicos;
+   - perfil logado conhecido (consumer/author_*) => vê tudo na demo. */
+export function canView(obj, state) {
+  const profileId = state && state.activeProfileId;
+  if (profileId === 'anon' || !PERMISSION_MATRIX[profileId]) return isPublic(obj);
+  return true;
 }
 
 /* -------------------------------------------------------------------------
