@@ -50,6 +50,9 @@ export function render() {
         não decide motor de consulta; não define papéis organizacionais definitivos.
       </div>
     </div>
+    <p class="small muted" style="margin-top:12px">O Observatório separa uma parte pública
+    (cidadão/visitante anônimo) de uma parte privada (gestores), com classificação de visibilidade
+    por objeto. ${stateChip('proposed', 'visibilidade por objeto')}</p>
   </section>
 
   <section class="block" id="ferramentas">
@@ -93,7 +96,7 @@ export function render() {
 
   <section class="block" id="requisitos">
     <h3>Requisitos rastreáveis ${anchor('requisitos')}</h3>
-    <p class="sub">Identificadores PR-01 a PR-10 usados em toda a apresentação. Links diretos por hash.</p>
+    <p class="sub">Identificadores PR-01 a PR-11 usados em toda a apresentação. Links diretos por hash.</p>
     <div class="cards">${reqCards}</div>
   </section>`;
 }

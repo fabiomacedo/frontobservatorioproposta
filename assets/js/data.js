@@ -34,6 +34,8 @@ export const REQUIREMENTS = [
     desc: 'Exibir análises do Superset dentro do Observatório de forma proposta.' },
   { id: 'PR-10', subject: 'Generalização validada em segundo contexto',
     desc: 'A mesma estrutura funciona em um segundo domínio fictício sem telas à parte.' },
+  { id: 'PR-11', subject: 'Visibilidade pública vs. privada por objeto',
+    desc: 'O Observatório separa uma parte pública (cidadão/visitante anônimo) de uma parte privada (gestores). A visibilidade é classificada POR OBJETO: o visitante anônimo só consome objetos públicos e não cria, edita, compõe nem publica. A definição do símbolo no LAL é pública (ver PR-01). A autorização efetiva continua sendo decidida fora da UI (ver PR-07); a visibilidade é propriedade do objeto, não substitui a autorização. Por superfície, a UI escolhe entre mostrar o item como "restrito / entre como gestor" ou ocultá-lo da listagem pública.' },
 ];
 
 export const reqById = (id) => REQUIREMENTS.find((r) => r.id === id);

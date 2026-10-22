@@ -1,7 +1,7 @@
 /* Página 8 — Segurança e diagnóstico [DOC-07, DOC-08] */
 import { AUTH_MATRIX, CHECKLIST } from '../assets/js/data.js';
 import { store } from '../assets/js/state.js';
-import { legend, esc, anchor } from '../assets/js/components.js';
+import { legend, esc, anchor, stateChip } from '../assets/js/components.js';
 
 const STATUS_OPTS = [
   ['nv', 'Não verificado'],
@@ -28,6 +28,23 @@ export function render() {
     <p class="sub">Separar modo de uso de autorização (PR-07). Perfis de teste ilustrativos.</p>
     ${matrix()}
     <p class="small muted">Legenda: ● permitido · — não · ? a confirmar. ${esc(AUTH_MATRIX.note)}</p>
+  </section>
+
+  <section class="block" id="visibilidade">
+    <h3>Visibilidade pública vs. privada ${anchor('visibilidade')}</h3>
+    <p class="sub">Visibilidade é propriedade do objeto; autorização é decidida fora da UI (PR-07).
+    Uma não substitui a outra.</p>
+    <p>Cada objeto é classificado como público (consumível pelo cidadão/visitante anônimo) ou privado
+    (restrito aos gestores). Quando um item público existe mas o acesso ao conteúdo depende de
+    autorização, a UI dá a ele um de dois tratamentos:</p>
+    <ul>
+      <li><strong>Restrito</strong> — o item aparece na superfície com valor de transparência, mas o
+      conteúdo pede "entre como gestor". ${stateChip('proposed', 'tratamento restrito')}</li>
+      <li><strong>Oculto</strong> — itens sensíveis não entram na listagem pública.
+      ${stateChip('proposed', 'tratamento oculto')}</li>
+    </ul>
+    <p class="small muted">A definição do símbolo no LAL é pública (ver PR-01), independentemente da
+    visibilidade do objeto que a utiliza.</p>
   </section>
 
   <section class="block" id="checklist">
