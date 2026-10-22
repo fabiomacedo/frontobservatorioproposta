@@ -1,7 +1,7 @@
 /* Página 6 — Composição e consumo [DOC-04, DOC-06] */
 import { store } from '../assets/js/state.js';
 import {
-  esc, anchor, metricWidget, chartWidget, embedPlaceholder,
+  esc, anchor, metricWidget, chartWidget, embedPlaceholder, lexiconDisclosure,
 } from '../assets/js/components.js';
 
 const MODELS = ['Análise rápida', 'Monitoramento', 'História temática'];
@@ -25,6 +25,11 @@ export function render() {
     <strong>Armazenamento local.</strong> O rascunho é salvo apenas no <code>localStorage</code> do seu
     navegador. Use “Restaurar demonstração” na barra lateral para voltar ao estado inicial. Nenhuma
     chamada externa é feita.
+  </div>
+
+  <div class="callout">
+    <strong>Critério (PR-01):</strong> no modo prévia/publicado, cada indicador e gráfico oferece acesso
+    à sua definição no LAL, no próprio ponto de consumo, para reduzir incompreensão do dado.
   </div>
 
   <section class="block">
@@ -91,10 +96,13 @@ function renderBlocks(ctx, c) {
 function blockBody(ctx, b) {
   switch (b.type) {
     case 'text': return `<p>${esc(b.content || 'Texto editorial (fictício).')}</p>`;
-    case 'metric': return metricWidget(ctx.metric);
-    case 'visualization': return chartWidget(ctx.chart);
+    case 'metric': return metricWidget(ctx.metric, { definition: ctx.definition, idSeed: 'comp-' + b.id });
+    case 'visualization': return chartWidget(ctx.chart, { definition: ctx.definition, idSeed: 'comp-' + b.id });
     case 'embedded_dashboard': return embedPlaceholder('Bloco incorporado (placeholder).');
-    case 'methodology': return `<p class="small muted">Metodologia: contagem sintética por semana. Definição no LAL: <code>${esc(ctx.definition.term)}</code> (fictícia).</p>`;
+    // Oferece o acesso completo à definição mesmo no modo prévia/publicado
+    // (o preset "História temática" injeta este bloco). O <details> é nativo,
+    // então funciona sem wiring. Aberto porque o bloco é explicitamente metodologia.
+    case 'methodology': return `<p class="small muted">Metodologia: contagem sintética por semana (demo).</p>${lexiconDisclosure(ctx.definition, { idSeed: 'comp-' + b.id, open: true })}`;
     default: return `<p class="muted small">${esc(b.type)}</p>`;
   }
 }

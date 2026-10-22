@@ -420,6 +420,13 @@ pre .c { color: #8aa0b8; font-style: italic; }
 .collapsible[open] > summary::after { content: "▾"; }
 .collapsible .cbody { padding: 14px; }
 
+/* Acesso à definição do símbolo do LAL (herda de .collapsible). O summary
+   traz sempre rótulo textual + o marcador nativo ▸/▾ — a cor nunca é o único
+   indicador. Sem glifo "?" (reservado ao estado "A confirmar"). */
+.lex-def code { font-size: 13px; }
+.lex-def .cbody h5 { margin: 14px 0 2px; }
+.lex-def .cbody h5:first-child { margin-top: 0; }
+
 /* ============================ Note / callout ============================ */
 
 .callout {

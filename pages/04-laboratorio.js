@@ -4,6 +4,7 @@ import { store } from '../assets/js/state.js';
 import {
   legend, stateChip, esc, anchor, techDetailBody, academicRef,
   metricWidget, chartWidget, filtersWidget, embedPlaceholder, stateBoxes,
+  dimensionDefsDisclosure,
 } from '../assets/js/components.js';
 import { openDetail } from '../assets/js/app.js';
 
@@ -28,9 +29,9 @@ export function render() {
 
   ${labComp('CMP-ctx-header', ctxHeader(ctx))}
   ${labComp('CMP-catalog-card', catalogCards(ctx))}
-  ${labComp('CMP-metric', metricWidget(ctx.metric))}
-  ${labComp('CMP-chart', chartWidget(ctx.chart))}
-  ${labComp('CMP-filters', filtersWidget(ctx.filters, { interactive: true }))}
+  ${labComp('CMP-metric', metricWidget(ctx.metric, { definition: ctx.definition, idSeed: 'lab-metric', showAcademicRef: true }))}
+  ${labComp('CMP-chart', chartWidget(ctx.chart, { definition: ctx.definition, idSeed: 'lab-chart', showAcademicRef: true }))}
+  ${labComp('CMP-filters', filtersBlock(ctx))}
   ${labComp('CMP-methodology', methodology(ctx))}
   ${labComp('CMP-embed', embedPlaceholder('Análise do Superset (fictícia) apareceria aqui.'))}
   ${labComp('CMP-editorial', editorial())}
@@ -114,6 +115,25 @@ function catalogCards(ctx) {
     </div>`).join('')}</div>`;
 }
 
+// Bloco de filtros + acesso às definições de dimensão (incremento proposto).
+// O `filtersWidget` fica dentro de `.filter-host` (único nó re-renderizado por
+// afterRender ao remover/limpar chips); o stateChip('proposed') e o
+// dimensionDefsDisclosure são IRMÃOS fora desse host, para não serem apagados
+// no redraw dos filtros.
+function filtersBlock(ctx) {
+  return `
+  <div class="filter-host">${filtersWidget(ctx.filters, { interactive: true })}</div>
+  <div class="row" style="margin-top:10px">${stateChip('proposed', 'esclarecer dimensões')}</div>
+  ${dimensionDefsDisclosure(ctx.dimensionDefs, { idSeed: 'lab-dims' })}`;
+}
+
+// NOTA DIDÁTICA (exclusiva do laboratório): a mesma definição aparece em até
+// três lugares nesta página — no indicador (CMP-metric), no gráfico (CMP-chart)
+// e na ficha completa `methodology()`. É intencional e serve para demonstrar o
+// acesso contextual. O disclosure dentro de cada widget usa o summary "Ver
+// definição no LAL — …" e vem FECHADO (acesso no ponto do dado); `methodology()`
+// é a ficha metodológica completa, ABERTA, com academicRef. Nos contextos de
+// consumo (P6) há apenas UM disclosure por widget.
 function methodology(ctx) {
   const d = ctx.definition;
   return `
@@ -159,8 +179,10 @@ export function afterRender(root) {
     });
   });
 
-  // Filtros interativos (remover chip / limpar) — apenas estado visual da demo
-  const filterHost = root.querySelector('#CMP-filters .lab-demo');
+  // Filtros interativos (remover chip / limpar) — apenas estado visual da demo.
+  // O redraw substitui SÓ o `.filter-host` (os chips); o stateChip('proposed') e
+  // o disclosure de dimensões são irmãos fora desse nó e sobrevivem ao redraw.
+  const filterHost = root.querySelector('#CMP-filters .filter-host');
   if (filterHost) {
     const ctx = store.getContext();
     let active = [...ctx.filters];

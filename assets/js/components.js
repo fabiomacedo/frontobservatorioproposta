@@ -33,6 +33,68 @@ export function academicRef(linkLabel = 'fundamentação acadêmica') {
   return `<a class="state academic" href="${DISSERTACAO_PDF}" target="_blank" rel="noopener" title="${esc(DISSERTACAO_REF)}"><span class="glyph" aria-hidden="true">§</span>${esc('Fundamentação acadêmica — ' + linkLabel)}</a>`;
 }
 
+// ---- Acesso à definição do símbolo do LAL no ponto de consumo ------------
+// Disclosure nativo <details> reaproveitando a terminologia da página 4
+// (Noção, Impacto, Sinônimos, Relações + elemento "Fonte"). Acessível por
+// teclado e por leitor de tela sem JS; funciona no modo prévia/publicado da
+// P6 por construção. O acesso é a proposta de experiência; a definição em si
+// permanece rotulada como fictícia/ilustrativa.
+export function lexiconDisclosure(def, { kind = 'symbol', open = false, idSeed = '', showAcademicRef = false } = {}) {
+  // Saneamento do idSeed ANTES de montar o id (atributo id não aceita espaços
+  // nem caracteres inválidos e precisa ser único por chamador).
+  const seed = String(idSeed).replace(/[^a-zA-Z0-9_-]/g, '-');
+  const domId = 'lex-' + seed;
+  const summaryLabel = kind === 'dimension'
+    ? `Ver definição da dimensão no LAL — <code>${esc(def.term)}</code>`
+    : `Ver definição no LAL — <code>${esc(def.term)}</code>`;
+  const introLabel = kind === 'dimension'
+    ? 'Definição fictícia, ilustrativa, de um símbolo de dimensão (ex.: região, modo) — não do indicador principal. Esclarece o recorte em que o dado é lido.'
+    : 'Esta definição esclarece o dado no contexto em que ele é exibido, para reduzir leitura equivocada do número. Conteúdo fictício, ilustrativo.';
+  const fonteLine = showAcademicRef
+    ? academicRef('elemento “Fonte” do LAL')
+    : '<p class="small muted">O elemento <strong>Fonte</strong> do LAL dá rastreabilidade documental ao símbolo.</p>';
+  return `
+  <details class="collapsible lex-def"${open ? ' open' : ''} id="${esc(domId)}">
+    <summary>${summaryLabel}</summary>
+    <div class="cbody">
+      <p class="small muted">${esc(introLabel)}</p>
+      <dl class="dl-tech">
+        <dt>Noção</dt><dd>${esc(def.notion)}</dd>
+        <dt>Impacto</dt><dd>${esc(def.impact)}</dd>
+        <dt>Sinônimos</dt><dd>${def.synonyms.map(esc).join(', ')}</dd>
+        <dt>Relações</dt><dd>${def.relations.map(esc).join('; ')}</dd>
+      </dl>
+      ${fonteLine}
+    </div>
+  </details>`;
+}
+
+// Disclosure agrupado das definições de dimensões/filtros (Figura 21 da
+// dissertação). Reaproveita a mesma terminologia; marcação fictícia por
+// dimensão e no summary. Helper irmão de lexiconDisclosure; NÃO altera
+// filtersWidget (que segue só renderizando chips).
+export function dimensionDefsDisclosure(dimensionDefs, { idSeed = '' } = {}) {
+  const seed = String(idSeed).replace(/[^a-zA-Z0-9_-]/g, '-');
+  const domId = 'lex-' + seed;
+  const sections = Object.keys(dimensionDefs).map((k) => {
+    const d = dimensionDefs[k];
+    return `
+      <h5>${esc(d.term)}</h5>
+      <p class="small muted">Definição fictícia, ilustrativa.</p>
+      <dl class="dl-tech">
+        <dt>Noção</dt><dd>${esc(d.notion)}</dd>
+        <dt>Impacto</dt><dd>${esc(d.impact)}</dd>
+        <dt>Sinônimos</dt><dd>${d.synonyms.map(esc).join(', ')}</dd>
+        <dt>Relações</dt><dd>${d.relations.map(esc).join('; ')}</dd>
+      </dl>`;
+  }).join('');
+  return `
+  <details class="collapsible lex-def" id="${esc(domId)}">
+    <summary>Ver definições das dimensões no LAL (fictícias)</summary>
+    <div class="cbody">${sections}</div>
+  </details>`;
+}
+
 // Legenda dos três estados.
 export function legend() {
   return `
@@ -105,16 +167,19 @@ export function sparkChart(series, { unit = '', descId = 'chart-desc' } = {}) {
   <p class="small muted" style="margin:6px 0 0">${desc}</p>`;
 }
 
-export function metricWidget(m) {
+// O 2º parâmetro é OPCIONAL e retrocompatível: quando `definition` é fornecida,
+// o widget anexa o acesso à definição do símbolo (lexiconDisclosure) logo
+// adjacente ao dado; quando omitida, o HTML atual é preservado.
+export function metricWidget(m, { definition, idSeed, showAcademicRef } = {}) {
   return `
   <div class="metric">
     <span class="m-val">${esc(m.value)}</span>
     <span class="m-lbl">${esc(m.label)}</span>
     <span class="m-delta ${m.dir === 'down' ? 'down' : 'up'}">${m.dir === 'down' ? '▼' : '▲'} ${esc(m.delta)} <span class="muted">(demo)</span></span>
-  </div>`;
+  </div>${definition ? lexiconDisclosure(definition, { idSeed, showAcademicRef }) : ''}`;
 }
 
-export function chartWidget(chart) {
+export function chartWidget(chart, { definition, idSeed, showAcademicRef } = {}) {
   return `
   <div class="chart-box">
     <div class="cb-head">
@@ -127,7 +192,7 @@ export function chartWidget(chart) {
       </div>
     </div>
     <div class="cb-body">${sparkChart(chart.series, { unit: chart.unit })}</div>
-  </div>`;
+  </div>${definition ? lexiconDisclosure(definition, { idSeed, showAcademicRef }) : ''}`;
 }
 
 export function filtersWidget(filters, { interactive = false } = {}) {

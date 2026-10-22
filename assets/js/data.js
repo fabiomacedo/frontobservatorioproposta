@@ -15,7 +15,7 @@ export const STATES = {
 // Requisitos PR-01..PR-10 (âncoras de rastreabilidade).
 export const REQUIREMENTS = [
   { id: 'PR-01', subject: 'Contexto compreensível dos dados',
-    desc: 'Todo número exibido traz unidade, período, fonte e definição associada ao LAL.' },
+    desc: 'Todo número traz unidade, período, fonte e definição do LAL — e o leitor abre essa definição no próprio ponto de consumo.' },
   { id: 'PR-02', subject: 'Autoria manual e com IA',
     desc: 'Criar análises à mão ou via assistente, convergindo para a mesma definição.' },
   { id: 'PR-03', subject: 'Análises salvas e reutilizáveis',
@@ -25,7 +25,7 @@ export const REQUIREMENTS = [
   { id: 'PR-05', subject: 'Consistência visual e metadados',
     desc: 'Mesma linguagem visual e metadados mínimos em todos os conteúdos.' },
   { id: 'PR-06', subject: 'Composição e publicação sem código específico',
-    desc: 'Montar e publicar páginas por configuração, sem desenvolvimento dedicado.' },
+    desc: 'Montar e publicar páginas por configuração, sem desenvolvimento dedicado; o acesso à definição do símbolo acompanha o conteúdo publicado (ver PR-01).' },
   { id: 'PR-07', subject: 'Autorização independente da interface',
     desc: 'Quem pode consultar, editar, compor, publicar e consumir é decidido fora da UI.' },
   { id: 'PR-08', subject: 'Preservação de LAL, ETL e APIs existentes',
@@ -80,6 +80,31 @@ export const CONTEXTS = {
       synonyms: ['trajeto monitorado', 'deslocamento registrado'],
       relations: ['vincula-se a "Ponto de embarque"', 'agrega em "Linha"'],
     },
+    // Definições fictícias dos símbolos de DIMENSÃO/FILTRO (incremento proposto,
+    // Figura 21). Chaves casam exatamente com os f.k de `filters`.
+    dimensionDefs: {
+      'Período': {
+        term: 'Período',
+        notion: 'Janela temporal do recorte exibido (definição fictícia).',
+        impact: 'Delimita a leitura: muda a base de comparação do número.',
+        synonyms: ['intervalo', 'janela temporal'],
+        relations: ['restringe "Viagem monitorada"'],
+      },
+      'Região': {
+        term: 'Região',
+        notion: 'Recorte territorial agregador dos pontos de captura (definição fictícia).',
+        impact: 'Define a área de cobertura considerada na contagem.',
+        synonyms: ['zona', 'área de cobertura'],
+        relations: ['agrupa "Ponto de embarque"', 'restringe "Viagem monitorada"'],
+      },
+      'Modo': {
+        term: 'Modo',
+        notion: 'Tipo de transporte associado ao deslocamento (definição fictícia).',
+        impact: 'Separa a demanda por natureza do serviço.',
+        synonyms: ['modal', 'tipo de transporte'],
+        relations: ['classifica "Viagem monitorada"'],
+      },
+    },
     catalog: [
       { id: 'an-mob-01', title: 'Demanda semanal por região', type: 'visualization' },
       { id: 'an-mob-02', title: 'Pontos com maior saturação', type: 'visualization' },
@@ -109,6 +134,31 @@ export const CONTEXTS = {
       impact: 'Indicador de volume e capilaridade da atenção.',
       synonyms: ['consulta registrada', 'contato assistencial'],
       relations: ['vincula-se a "Unidade ativa"', 'agrega em "Território"'],
+    },
+    // Definições fictícias dos símbolos de DIMENSÃO/FILTRO (incremento proposto,
+    // Figura 21). Chaves casam exatamente com os f.k de `filters`.
+    dimensionDefs: {
+      'Período': {
+        term: 'Período',
+        notion: 'Janela temporal do recorte exibido (definição fictícia).',
+        impact: 'Delimita a leitura: muda a base de comparação do número.',
+        synonyms: ['intervalo', 'janela temporal'],
+        relations: ['restringe "Atendimento registrado"'],
+      },
+      'Nível': {
+        term: 'Nível',
+        notion: 'Grau de complexidade da atenção considerada (definição fictícia).',
+        impact: 'Separa a demanda por tipo de serviço assistencial.',
+        synonyms: ['linha de cuidado', 'nível de atenção'],
+        relations: ['classifica "Atendimento registrado"', 'vincula-se a "Unidade ativa"'],
+      },
+      'Faixa': {
+        term: 'Faixa',
+        notion: 'Agrupamento etário da população atendida (definição fictícia).',
+        impact: 'Recorta a leitura por perfil demográfico.',
+        synonyms: ['faixa etária', 'grupo de idade'],
+        relations: ['segmenta "Atendimento registrado"'],
+      },
     },
     catalog: [
       { id: 'an-sau-01', title: 'Volume semanal por nível', type: 'visualization' },
@@ -178,7 +228,7 @@ export const LAB_COMPONENTS = [
     events: [],
     data: ['Valor fictício', 'Rótulo', 'Variação (demo)'],
     deps: ['Resposta de dados + metadados (ilustrativa)'],
-    tests: ['Variação tem sinal e cor + texto (não só cor)', 'Coerência com gráfico e tabela da demo'],
+    tests: ['Variação tem sinal e cor + texto (não só cor)', 'Coerência com gráfico e tabela da demo', 'Acesso à definição do LAL disponível no próprio widget (PR-01)'],
     note: 'Número coerente apenas dentro da demonstração.',
   },
   {
@@ -188,7 +238,7 @@ export const LAB_COMPONENTS = [
     events: ['onInspect()'],
     data: ['Série sintética', 'Metadados mínimos (PR-05)'],
     deps: ['Biblioteca gráfica (A CONFIRMAR — não assumida)'],
-    tests: ['Metadados sempre presentes', 'Descrição textual acompanha o gráfico'],
+    tests: ['Metadados sempre presentes', 'Descrição textual acompanha o gráfico', 'Acesso à definição do LAL disponível no próprio widget (PR-01)'],
     note: 'Renderizado em SVG nativo só para a demo; a biblioteca gráfica real não é assumida.',
   },
   {
